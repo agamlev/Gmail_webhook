@@ -1,9 +1,9 @@
 import os
-import base64
 import requests
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 
+# הגדרות כלליות
 WEBHOOK_URL = "https://hook.eu2.make.com/it6by94n5euvdx6qgi241qfsyxovywc2"
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 
@@ -20,7 +20,14 @@ def get_service():
         "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
         "client_x509_cert_url": os.environ["CLIENT_CERT_URL"]
     }
+
+    # יצירת ההרשאות
     creds = Credentials.from_service_account_info(info, scopes=SCOPES)
+
+    # impersonation – התחזות למשתמש Gmail בתוך הארגון שלך
+    creds = creds.with_subject("fincsops@arboxapp.com")
+
+    # יצירת שירות Gmail
     service = build('gmail', 'v1', credentials=creds)
     return service
 
@@ -33,7 +40,6 @@ def check_new_emails():
         msg_detail = service.users().messages().get(userId='me', id=msg['id']).execute()
         headers = msg_detail['payload'].get('headers', [])
         subject = next((h['value'] for h in headers if h['name'] == 'Subject'), "(ללא נושא)")
-
         requests.post(WEBHOOK_URL, json={"subject": subject, "id": msg["id"]})
 
 if __name__ == '__main__':
