@@ -1,0 +1,31 @@
+name: Check Gmail and Send Webhook
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"  # מריץ כל 15 דקות
+  workflow_dispatch:
+
+jobs:
+  gmail_check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
+      - name: Install dependencies
+        run: pip install google-api-python-client google-auth
+
+      - name: Run Gmail webhook script
+        run: python check_gmail.py
+        env:
+          PROJECT_ID: ${{ secrets.PROJECT_ID }}
+          PRIVATE_KEY_ID: ${{ secrets.PRIVATE_KEY_ID }}
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+          CLIENT_EMAIL: ${{ secrets.CLIENT_EMAIL }}
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          CLIENT_CERT_URL: ${{ secrets.CLIENT_CERT_URL }}
